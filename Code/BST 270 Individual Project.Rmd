@@ -3,6 +3,8 @@ title: "BST 270 Final Project"
 author: "Corriene Sept"
 date: "1/19/2021"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     df_print: paged
     toc: yes
@@ -95,16 +97,16 @@ Make the rows of the table:
 ```{r}
 Cases <- c(us[363,2],us[363,4], "+3%")
 Deaths <- c(us[363,3], us[363,3] - us[362,3], "+26%")
-Hospitalized <- c("", national_history$hospitalizedCurrently[2], "+3%")
+Hospitalized <- c("", national_history$hospitalizedCurrently[2],"+3%")
 ```
 
 Print the table: 
 ```{r}
 data <- as.matrix(rbind(Cases, Deaths, Hospitalized))
 colnames(data) <- c("Total Reported","On Jan 17", "14-day Change")
-data%>% 
-  kbl() %>% 
-  kable_styling()
+
+kable(data, "pipe")
+
 ```
 
 
@@ -130,11 +132,11 @@ us_states <- us_states %>%
 
 Filter to January 17, 2021 and display the table:
 ```{r}
-us_states %>%  
+table.data <- us_states %>%  
   filter(date == "2021-01-17") %>%  
-  select(c(cases, new_cases_7dayavg)) %>% 
-  kbl() %>% 
-  kable_styling()
+  select(c(`State` = state, `Total Cases` = cases, `Daily Avg in Last 7 Days` = new_cases_7dayavg)) 
+
+kable(table.data, "latex")  
 ```
 
 **Brief critique of reproducibility:**
