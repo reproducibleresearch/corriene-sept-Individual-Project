@@ -1,0 +1,142 @@
+---
+title: "BST 270 Final Project"
+author: "Corriene Sept"
+date: "1/19/2021"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(stringr)
+library(zoo)
+library(lubridate)
+library(tidyverse)
+library(kableExtra)
+library(readr)
+```
+
+
+Load data:
+```{r}
+us_counties <- read_csv("~/R/BST270-Winter2021/covid-19-data-master/us-counties.csv")
+us <- read_csv("~/R/BST270-Winter2021/covid-19-data-master/us.csv")
+us_states <- read_csv("~/R/BST270-Winter2021/covid-19-data-master/us-states.csv")
+
+national_history <- read_csv("~/R/BST270-Winter2021/national-history.csv")
+```
+
+Note that all below analyses are for **January 17, 2021.**
+
+# 1. New cases as a function of time with a rolling average plot
+
+First, compute new cases and new deaths on each day.
+
+```{r}
+us$new_cases <- us$cases - lag(us$cases)
+us$new_deaths <- us$deaths - lag(us$deaths)
+```
+
+
+Compute 7 day average. Note that the previous 7 days are averaged (this is NOT center aligned.) The first 7 days (chronologically) in the dataset are then missing.
+```{r}
+us$new_cases_7dayavg <- rollmean(us$new_cases, k = 7, fill = NA, align = "right")
+us$new_deaths_7dayavg <- rollmean(us$new_deaths, k = 7, fill = NA, align = "right")
+us$deaths_7dayavg <- rollmean(us$deaths, k = 7, fill = NA, align = "right")
+us$cases_7dayavg <- rollmean(us$cases, k = 7, fill = NA, align = "right")
+national_history$hospitalizedCurrently_7dayavg <- rollmean(national_history$hospitalizedCurrently, k = 7, fill = NA, align = "left")
+
+```
+
+Create the plot: new cases as a function of time with a rolling average. The trendine is the 7-day average computed above, and the bar chart is *new cases.* 
+```{r}
+p <- ggplot(us, aes(date, new_cases)) +
+           geom_bar(stat="identity", na.rm = TRUE, color = "navy") +
+  ggtitle("Coronavirus in the US: Latest Case Count") +
+           xlab("Date") + ylab("New Cases")
+
+p + geom_line(aes(date, new_cases_7dayavg), na.rm = TRUE, color = "firebrick4", size = 1.1) + theme_bw()
+```
+
+**Brief critique of reproducibility:**
+
+This plot was easily reproduced using the above code. I didn't face any issues trying to reproduce this; it was pretty self explanatory.
+
+# 2. Table of cases, hospitalizations, and deaths
+
+The first two columns of the table, total reported cases & deaths and Jan 17 new cases, new deaths, and currently hospitalized is already contained in the datasets us and national_history. The new cases and new deaths were computed previously. 14-day change was computed using 7-day averages for new cases, new deaths, and currently hospitalized patients. This is the percent change between the 7 day averages of new cases, new deaths, and currently hospitalized on January 3 and January 17.
+
+Filter to January 3rd and 17th to compute the 3rd column of the table.
+```{r}
+Jan03 <- us %>%  
+  filter(date == "2021-01-03")
+Jan17 <- us %>%  
+  filter(date == "2021-01-17")
+```
+
+14 day % increase: hospitalized currently 7 day average, Jan 17 and Jan 03
+```{r}
+round((national_history[2,]$hospitalizedCurrently_7dayavg - national_history[16,]$hospitalizedCurrently_7dayavg) / national_history[16,]$hospitalizedCurrently_7dayavg * 100)
+```
+
+14 day % increase: NEW cases 7 day average, Jan 17 and Jan 03
+```{r}
+round((Jan17$new_cases_7dayavg - Jan03$new_cases_7dayavg) / Jan03$new_cases_7dayavg * 100)
+```
+
+14 day % increase: NEW deaths 7 day average, Jan 17 and Jan 03
+```{r}
+round(((Jan17$new_deaths_7dayavg - Jan03$new_deaths_7dayavg) / Jan03$new_deaths_7dayavg)*100)
+```
+
+Make the rows of the table: 
+```{r}
+Cases <- c(us[363,2],us[363,4], "+3%")
+Deaths <- c(us[363,3], us[363,3] - us[362,3], "+26%")
+Hospitalized <- c("", national_history$hospitalizedCurrently[2], "+3%")
+```
+
+Print the table: 
+```{r}
+data <- as.matrix(rbind(Cases, Deaths, Hospitalized))
+colnames(data) <- c("Total Reported","On Jan 17", "14-day Change")
+data%>% 
+  kbl() %>% 
+  kable_styling()
+```
+
+
+**Brief critique of reproducibility:**
+This was more challenging to reproduce, mostly because the 14-day change is computed using 7-day averages and at first it wasn't terribly clear how this was done. For one, it needs to be aligned so that the previous 7 days are being averaged so the current date isn't missing. Also, it uses *NEW* deaths, *NEW* cases, and currently hospitalized patients to compute these metrics, not cumulative deaths and cases, and this was not explicitly stated. 
+
+
+# 4. Table of cases by state
+
+Compute new cases by state
+```{r}
+us_states <- us_states %>% 
+  group_by(state) %>% 
+  mutate(new_cases = cases - lag(cases))
+```
+
+Compute 7 day averages of new cases (aligned so the previous 7 days are being averaged) for each state.
+```{r}
+us_states <- us_states %>% 
+  group_by(state) %>% 
+  mutate(new_cases_7dayavg = rollmean(new_cases, k = 7, fill = NA, align = "right"))
+```
+
+Filter to January 17, 2021 and display the table:
+```{r}
+us_states %>%  
+  filter(date == "2021-01-17") %>%  
+  select(c(cases, new_cases_7dayavg)) %>% 
+  kbl() %>% 
+  kable_styling()
+```
+
+**Brief critique of reproducibility:**
+This wasn't too difficult to reproduce, but including the information that the 7 day average was computed using new cases and was aligned so the previous 7 days are being averaged would have been helpful.
