@@ -6,6 +6,6 @@ The data folder contains the 3 data files used to make the graphs and tables: na
 
 The code file is BST 270 Individual Project.Rmd and is contained in the code folder.
 
-The results are contained in the results folder. There are two documents: the html file BST_270_Individual_Project.html and the PDF file BST 270 Final Project PDF.pdf. These files contain exactly the same information, they're just two different formats.
+The results are contained in the results folder in the file BST_270_Individual_Project.pdf.
 
 To reproduce these results, download all 3 datasets from the data folder and the code from the code folder. Replace the paths in the code file to where your 3 datasets are located. The following packages are used to run the analysis: ggplot2, stringr, zoo, lubridate, tidyverse, kableExtra, and readr. The version of R that was used is R 3.6.0. R Studio was used for the analyses. Running the code file should then produce results identical to those located in the results folder. 
