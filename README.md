@@ -1,6 +1,6 @@
 # corriene-sept-Individual-Project
 
-In this respository there are 3 folders: data, code, and results. 
+In this repository there are 3 folders: data, code, and results. 
 
 The data folder contains the 3 data files used to make the graphs and tables: national-history.csv (contains information about hospitalizations), us.csv (contains information about deaths and cases nationwide), and us-states.csv (contains information about deaths and cases at the state level). us.csv and us-states.csv were obtained from the NY times github, https://github.com/nytimes/covid-19-data. Note that this information is updated daily; the datasets I used were downloaded on January 19, 2020 and the tables and graphs were made for January 17, 2020. national-history.csv was obtained on January 19, 2020 from https://covidtracking.com/data/download (summmary data for the United States.)
 
